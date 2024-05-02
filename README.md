@@ -21,3 +21,7 @@ $ npm run dev
 4. tRPC
 5. Prisma
 6. Supabase (PostgreSQL)
+
+# Preview
+<img width="1471" alt="Screenshot 2024-05-02 at 12 57 15 PM" src="https://github.com/realTristan/stack-tracker/assets/75189508/b1cdca63-fa57-4b44-adda-063f8cca06e7">
+<img width="1467" alt="Screenshot 2024-05-02 at 12 58 26 PM" src="https://github.com/realTristan/stack-tracker/assets/75189508/8937cee9-0c7e-4bbc-b437-1ea41346e86b">
