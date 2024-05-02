@@ -18,7 +18,7 @@ $ npm run dev
 1. Next.js (React)
 2. TypeScript
 3. Tailwind CSS
-4. tRPC
+4. Server Actions
 5. Prisma
 6. Supabase (PostgreSQL)
 
