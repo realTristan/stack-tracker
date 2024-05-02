@@ -163,6 +163,7 @@ function Components(): JSX.Element {
                         });
 
                       setAction(null);
+                      setSelectedStack(null);
                     }}
                   >
                     {action === "deleting" ? (
