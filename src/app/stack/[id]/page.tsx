@@ -3,14 +3,15 @@
 import Navbar from "@/components/Navbar";
 import { fetchStack, updateStack } from "@/lib/server/stacks";
 import { Status } from "@/types/status";
-import { Button, Spinner, Textarea } from "@nextui-org/react";
+import { Button, Spinner } from "@nextui-org/react";
 import { Stack } from "@prisma/client";
 import { usePathname } from "next/navigation";
-import React, { ReactNode, useEffect, useState } from "react";
-import { useEditor, EditorContent, Content } from "@tiptap/react";
+import React, { useEffect, useState } from "react";
+import { useEditor, Content } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { Toolbar } from "@/components/Toolbar";
 import Tiptap from "@/components/Tiptap";
+
+import { z } from "zod";
 
 export default function StackPage() {
   return (
@@ -38,23 +39,6 @@ function Components() {
       }
 
       setStack({ ...stack, content: editor.getHTML() });
-    },
-    onBlur: async () => {
-      if (!stack) {
-        return;
-      }
-
-      setUpdateStatus("loading");
-
-      await updateStack(stack.id, {
-        ...stack,
-      })
-        .catch((e) => {
-          setUpdateStatus(e.message);
-        })
-        .then(() => {
-          setUpdateStatus("success");
-        });
     },
   });
 
@@ -100,22 +84,35 @@ function Components() {
           className="w-fit text-4xl font-bold"
           contentEditable
           onBlur={async (e) => {
-            if (stack.name === e.target.textContent) {
+            const newName = e.target.textContent || "";
+
+            if (stack.name === newName) {
               return;
             }
+
+            if (newName.length < 1 || newName.length > 255) {
+              return setError(
+                new Error(
+                  "Name must be at least 1 character and max 255 characters",
+                ),
+              );
+            }
+
+            setStack({ ...stack, name: newName });
 
             setUpdateStatus("loading");
 
             await updateStack(stack.id, {
               ...stack,
-              name: e.target.textContent || "",
+              name: newName,
             })
               .catch((e) => {
-                setUpdateStatus(e.message);
+                setUpdateStatus("error");
+                setError(e);
               })
               .then(() => {
-                setStack({ ...stack, name: e.target.textContent || "" });
                 setUpdateStatus("success");
+                setError(null);
               });
           }}
         >
@@ -125,23 +122,34 @@ function Components() {
           className="w-fit text-base text-gray-500"
           contentEditable
           onBlur={async (e) => {
-            if (stack.description === e.target.textContent) {
+            const newDescription = e.target.textContent || "";
+            if (stack.description === newDescription) {
               return;
             }
+
+            if (newDescription.length < 1 || newDescription.length > 255) {
+              return setError(
+                new Error(
+                  "Description must be at least 1 character and max 255 characters",
+                ),
+              );
+            }
+
+            setStack({ ...stack, description: newDescription });
 
             setUpdateStatus("loading");
 
             await updateStack(stack.id, {
               ...stack,
-              description: e.target.textContent || "",
+              description: newDescription,
             })
               .catch((e) => {
                 setUpdateStatus("error");
                 setError(e);
               })
               .then(() => {
-                setStack({ ...stack, description: e.target.textContent || "" });
                 setUpdateStatus("success");
+                setError(null);
               });
           }}
         >
@@ -155,9 +163,7 @@ function Components() {
           </div>
         )}
 
-        {updateStatus === "error" && (
-          <p className="text-base text-red-500">An error has occurred.</p>
-        )}
+        {error && <p className="text-base text-red-500">{error.message}</p>}
 
         {updateStatus === "success" && (
           <p className="text-base text-green-500">Changes saved.</p>
@@ -175,7 +181,15 @@ function Components() {
         color="default"
         disabled={updateStatus === "loading"}
         className="flex items-center justify-center disabled:opacity-50"
-        onClick={async () => {
+        onClick={async (e) => {
+          if (stack.content.length < 1 || stack.content.length > 65535) {
+            return setError(
+              new Error(
+                "Content must be at least 1 character and max 65535 characters",
+              ),
+            );
+          }
+
           setUpdateStatus("loading");
 
           updateStack(stack.id, stack)
@@ -185,6 +199,7 @@ function Components() {
             })
             .then(() => {
               setUpdateStatus("success");
+              setError(null);
             });
         }}
       >
