@@ -1,6 +1,6 @@
 # Stack Tracker
 
-A simple stack tracker.
+Manage your tech stacks with ease.
 
 ### Flow Diagram
 
