@@ -81,7 +81,7 @@ function Components(): JSX.Element {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-start justify-start gap-12 p-12">
+    <main className="flex min-h-screen flex-col items-start justify-start gap-4 p-12">
       <div className="flex w-full flex-col items-start justify-start gap-2">
         <h1 className="text-4xl font-bold">Stacks</h1>
         <p className="text-base text-gray-500">

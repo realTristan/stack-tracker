@@ -3,12 +3,14 @@
 import Navbar from "@/components/Navbar";
 import { fetchStack, updateStack } from "@/lib/server/stacks";
 import { Status } from "@/types/status";
-import { Spinner, Textarea } from "@nextui-org/react";
+import { Button, Spinner, Textarea } from "@nextui-org/react";
 import { Stack } from "@prisma/client";
 import { usePathname } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import React, { ReactNode, useEffect, useState } from "react";
+import { useEditor, EditorContent, Content } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { Toolbar } from "@/components/Toolbar";
+import Tiptap from "@/components/Tiptap";
 
 export default function StackPage() {
   return (
@@ -25,7 +27,36 @@ function Components() {
   const [stack, setStack] = useState<Stack | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<Error | null>(null);
-  const [updateStatus, setUpdateStatus] = useState<ReactNode>(<></>);
+  const [updateStatus, setUpdateStatus] = useState<Status>("idle");
+
+  const editor = useEditor({
+    content: stack?.content,
+    extensions: [StarterKit.configure()],
+    onUpdate: ({ editor }) => {
+      if (!stack) {
+        return;
+      }
+
+      setStack({ ...stack, content: editor.getHTML() });
+    },
+    onBlur: async () => {
+      if (!stack) {
+        return;
+      }
+
+      setUpdateStatus("loading");
+
+      await updateStack(stack.id, {
+        ...stack,
+      })
+        .catch((e) => {
+          setUpdateStatus(e.message);
+        })
+        .then(() => {
+          setUpdateStatus("success");
+        });
+    },
+  });
 
   useEffect(() => {
     if (status !== "idle") {
@@ -45,6 +76,8 @@ function Components() {
       .then((stack) => {
         setStack(stack);
         setStatus("success");
+
+        editor?.commands.setContent(stack?.content as Content);
       })
       .catch((e) => {
         setStatus("error");
@@ -60,17 +93,8 @@ function Components() {
     );
   }
 
-  if (status === "error") {
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-12">
-        <h1 className="text-2xl font-bold">Error</h1>
-        <p>{error?.message}</p>
-      </main>
-    );
-  }
-
   return (
-    <main className="flex min-h-screen flex-col items-start justify-start gap-12 p-12">
+    <main className="flex min-h-screen flex-col items-start justify-start gap-4 p-12">
       <div className="flex w-fit flex-col items-start justify-start gap-2">
         <h1
           className="w-fit text-4xl font-bold"
@@ -80,7 +104,7 @@ function Components() {
               return;
             }
 
-            setUpdateStatus(SavingChangesStatus);
+            setUpdateStatus("loading");
 
             await updateStack(stack.id, {
               ...stack,
@@ -91,7 +115,7 @@ function Components() {
               })
               .then(() => {
                 setStack({ ...stack, name: e.target.textContent || "" });
-                setUpdateStatus("Stack name updated.");
+                setUpdateStatus("success");
               });
           }}
         >
@@ -105,58 +129,71 @@ function Components() {
               return;
             }
 
+            setUpdateStatus("loading");
+
             await updateStack(stack.id, {
               ...stack,
               description: e.target.textContent || "",
             })
               .catch((e) => {
-                setUpdateStatus(e.message);
+                setUpdateStatus("error");
+                setError(e);
               })
               .then(() => {
                 setStack({ ...stack, description: e.target.textContent || "" });
-                setUpdateStatus("Stack description updated.");
+                setUpdateStatus("success");
               });
           }}
         >
           {stack.description}
         </p>
 
-        <p className="text-base text-gray-500">{updateStatus}</p>
+        {updateStatus === "loading" && (
+          <div className="flex flex-row items-center justify-center gap-2">
+            <p className="text-base text-gray-500">Saving changes</p>
+            <Spinner size="sm" color="default" />
+          </div>
+        )}
+
+        {updateStatus === "error" && (
+          <p className="text-base text-red-500">An error has occurred.</p>
+        )}
+
+        {updateStatus === "success" && (
+          <p className="text-base text-green-500">Changes saved.</p>
+        )}
       </div>
 
-      <div className="flex w-full flex-col items-start justify-start gap-12">
-        <Textarea
-          value={stack.content}
-          onChange={(e) => setStack({ ...stack, content: e.target.value })}
-          onBlur={async (e) => {
-            setUpdateStatus(SavingChangesStatus);
+      <Tiptap
+        content={stack.content}
+        onChange={async (richText) => {
+          setStack({ ...stack, content: richText });
+        }}
+      />
 
-            await updateStack(stack.id, {
-              ...stack,
+      <Button
+        color="default"
+        disabled={updateStatus === "loading"}
+        className="flex items-center justify-center disabled:opacity-50"
+        onClick={async () => {
+          setUpdateStatus("loading");
+
+          updateStack(stack.id, stack)
+            .catch((e) => {
+              setUpdateStatus("error");
+              setError(e);
             })
-              .catch((e) => {
-                setUpdateStatus(e.message);
-              })
-              .then(() => {
-                setUpdateStatus("Stack content updated.");
-              });
-          }}
-          className="w-full"
-        />
-
-        <Markdown className="markdown" remarkPlugins={[remarkGfm]}>
-          {stack.content}
-        </Markdown>
-      </div>
+            .then(() => {
+              setUpdateStatus("success");
+            });
+        }}
+      >
+        {updateStatus !== "loading" ? (
+          "Save changes"
+        ) : (
+          <Spinner size="sm" color="white" />
+        )}
+      </Button>
     </main>
-  );
-}
-
-function SavingChangesStatus() {
-  return (
-    <div className="flex flex-row items-center justify-center gap-2">
-      <p className="text-base text-gray-500">Saving changes</p>
-      <Spinner size="sm" color="default" />
-    </div>
   );
 }
