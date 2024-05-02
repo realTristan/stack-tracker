@@ -23,5 +23,7 @@ $ npm run dev
 6. Supabase (PostgreSQL)
 
 # Preview
-<img width="1471" alt="Screenshot 2024-05-02 at 12 57 15 PM" src="https://github.com/realTristan/stack-tracker/assets/75189508/b1cdca63-fa57-4b44-adda-063f8cca06e7">
-<img width="1467" alt="Screenshot 2024-05-02 at 12 58 26 PM" src="https://github.com/realTristan/stack-tracker/assets/75189508/8937cee9-0c7e-4bbc-b437-1ea41346e86b">
+
+<img width="1542" alt="Screenshot 2024-05-02 at 3 32 39 PM" src="https://github.com/realTristan/stack-tracker/assets/75189508/14040c98-f511-4b58-ba50-335735344db0">
+
+<img width="1546" alt="Screenshot 2024-05-02 at 3 32 17 PM" src="https://github.com/realTristan/stack-tracker/assets/75189508/65b734d2-08a1-43c0-a46c-d9d05d333944">
