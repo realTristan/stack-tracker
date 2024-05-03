@@ -101,7 +101,11 @@ function Components(): JSX.Element {
               <TableCell>{stack.name}</TableCell>
               <TableCell>{stack.description}</TableCell>
               <TableCell className="flex flex-row items-center justify-start gap-2">
-                <Button as={Link} href={`/stack/${stack.id}`} color="primary">
+                <Button
+                  as={Link}
+                  href={`/stack?id=${stack.id}`}
+                  color="primary"
+                >
                   View
                 </Button>
 
@@ -196,7 +200,7 @@ function Components(): JSX.Element {
                 return;
               }
 
-              router.push(`/stack/${stack.id}`);
+              router.push(`/stack?id=${stack.id}`);
             });
 
           setAction(null);

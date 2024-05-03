@@ -46,7 +46,7 @@ export default function Tiptap(props: Props) {
   });
 
   return (
-    <div className="flex min-h-52 w-full flex-col gap-2">
+    <div className="flex min-h-fit w-full flex-col gap-2">
       <Toolbar editor={editor} />
       <EditorContent editor={editor} />
     </div>

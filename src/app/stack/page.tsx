@@ -5,13 +5,8 @@ import { fetchStack, updateStack } from "@/lib/server/stacks";
 import { Status } from "@/types/status";
 import { Button, Spinner } from "@nextui-org/react";
 import { Stack } from "@prisma/client";
-import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { useEditor, Content } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import Tiptap from "@/components/Tiptap";
-
-import { z } from "zod";
 
 export default function StackPage() {
   return (
@@ -24,50 +19,40 @@ export default function StackPage() {
 }
 
 function Components() {
-  const path = usePathname();
   const [stack, setStack] = useState<Stack | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<Error | null>(null);
   const [updateStatus, setUpdateStatus] = useState<Status>("idle");
-
-  const editor = useEditor({
-    content: stack?.content,
-    extensions: [StarterKit.configure()],
-    onUpdate: ({ editor }) => {
-      if (!stack) {
-        return;
-      }
-
-      setStack({ ...stack, content: editor.getHTML() });
-    },
-  });
 
   useEffect(() => {
     if (status !== "idle") {
       return;
     }
 
-    const id = path.split("/").pop();
+    const url = new URL(window.location.href);
+    const id = url.searchParams.get("id");
+
     if (!id) {
-      setStatus("error");
-      setError(new Error("Invalid stack ID"));
-      return;
+      return setError(new Error("Stack ID not found"));
     }
 
     setStatus("loading");
 
     fetchStack(id)
-      .then((stack) => {
-        setStack(stack);
-        setStatus("success");
-
-        editor?.commands.setContent(stack?.content as Content);
-      })
       .catch((e) => {
         setStatus("error");
         setError(e);
+      })
+      .then((stack) => {
+        if (!stack) {
+          setStatus("error");
+          return setError(new Error("Stack not found"));
+        }
+
+        setStatus("success");
+        setStack(stack);
       });
-  }, [stack]);
+  }, []);
 
   if (status === "loading" || !stack) {
     return (
